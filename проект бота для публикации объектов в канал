@@ -1,0 +1,37 @@
+# импортируем нужные библиотеки, надеюсь этого достаточно
+import os
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import logging
+import requests  # возможно пригодится позже
+
+# загружаем токен бота, надо не забыть про файл .env
+bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+channel_id = os.getenv('CHANNEL_ID')  # ID канала, куда будем отправлять сообщения
+
+# настройка логирования, пока не очень понимаю, как это работает, но пусть будет
+logging.basicConfig(level=logging.INFO)
+
+# список доверенных пользователей, нужно будет обновить
+trusted_users = [123456789, 987654321]  # заменить на реальные ID агентов
+
+# функция для команды /start
+def start_command(update, context):
+    update.message.reply_text('Привет! Это бот для публикации объектов.')  # может добавить инструкции?
+
+# функция для обработки сообщений
+def msg_handler(update, context):
+    user_id = update.message.from_user.id
+    msg = update.message.text
+
+    # проверяем, что пользователь доверенный
+    if user_id in trusted_users:
+        # проверяем, что сообщение не пустое, надо еще добавить больше проверок
+        if len(msg) > 0:
+            # проверяем на дубликат, функция пока простая
+            if not is_duplicate(msg):
+                # добавляем теги, надо подумать над логикой
+                msg_with_tags = add_tags_to_msg(msg)
+                try:
+                    # отправляем сообщение в канал
+                    context.bot.send_message(chat_id=channel_id, text=msg_with_tags)
+                    update.message.reply_text('Объект опубликован.')  # можно добавить ссылку на сообщение?
